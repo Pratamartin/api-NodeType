@@ -1,51 +1,55 @@
 import express from 'express'
 import Clients from '../models/clients'
+import clientsRepository from '../repositories/clients-repository'
 const clientsRouter = express.Router()
 
 clientsRouter.post('/clients', (req, res) => {
     const clients: Clients = req.body
-    //TODO: Criar e salvar um novo item
-    const id = 123
-    res.status(201).location(`/clients/${id}`).send()
+    clientsRepository.criar(clients, (id) => {
+        if (id) {
+            res.status(201).location(`/clients/${id}`).send()
+        } else {
+            res.status(400).send()
+        }
+    })
 })
 clientsRouter.get('/clients', (req, res) => {
-    const clients: Clients[] = [
-        {
-            id: 1,
-            nome: 'Martinho',
-            phone: 92995028355,
-            email: 'martinhoprata95@gmail.com',
-            address: 'rua manila, 19'
-        },
-        {
-            id: 2,
-            nome: 'Prata',
-            phone: 92995028366,
-            email: 'prata95martin@gmail.com',
-            address: 'rua manila, 20'
-        }
-    ]
-    res.json(clients)
+    clientsRepository.lerTodos((clients) => res.json(clients))
 })
 clientsRouter.get('/clients/:id', (req, res) => {
     const id: number = +req.params.id
-    const clients: Clients = {
-        id: id,
-        nome: `Client ${id}`,
-        phone: id,
-        email: `email ${id}`,
-        address: `adress ${id}`
-    }
-    res.json(clients)
+    clientsRepository.ler(id, (clients) => {
+        if (clients) {
+            res.json(clients)
+        } else {
+            res.status(404).send()
+        }
+    })
 })
+
 clientsRouter.put('/clients/:id', (req, res) => {
     const id: number = +req.params.id
-    res.status(204).send()
+    clientsRepository.atualizar(id, req.body, (notFound) => {
+        if (notFound) {
+            res.status(404).send()
+        } else {
+            res.status(204).send()
+        }
+    })
 })
 clientsRouter.delete('/clients/:id', (req, res) => {
     const id: number = +req.params.id
     res.status(204).send()
 })
-
+clientsRouter.delete('/clients/:id', (req, res) => {
+    const id: number = +req.params.id
+    clientsRepository.apagar(id, (notFound) => {
+        if (notFound) {
+            res.status(404).send()
+        } else {
+            res.status(204).send()
+        }
+    })
+})
 
 export default clientsRouter
